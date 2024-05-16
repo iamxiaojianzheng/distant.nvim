@@ -387,19 +387,23 @@ local function download_binary(opts, cb)
             return
         end
 
-        local choices = vim.tbl_map(
-            function(entry) return entry.description end,
-            vim.tbl_filter(function(entry)
-                local version = parse_tag_into_version(entry.tag)
-                return not min_version or ((not not version) and version:compatible(min_version))
-            end, entries)
-        )
+        ---@type {choice:string, entry:ReleaseEntry}[]
+        local entry_choices = {}
+        for _, entry in ipairs(entries) do
+            local version = parse_tag_into_version(entry.tag)
+            if not min_version or ((not not version) and version:compatible(min_version)) then
+                table.insert(entry_choices, { choice = entry.description, entry = entry })
+            end
+        end
+
         local choice = prompt_choices({
             prompt = 'Which version of the binary do you want?',
-            choices = choices,
+            choices = vim.tbl_map(function(ec) return ec.choice end, entry_choices),
             max_choices = MAX_DOWNLOAD_CHOICES,
         })
-        local entry = entries[choice]
+
+        -- Take the choice from the filtered set and figure out which entry
+        local entry = entry_choices[choice] and entry_choices[choice].entry
         if not entry then
             cb('Cancelled selecting binary version', nil)
             return
