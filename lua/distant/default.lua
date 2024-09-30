@@ -52,6 +52,9 @@ local DEFAULT_SETTINGS = {
             --- Keymap to edit the file or directory under the cursor.
             --- @type distant.plugin.settings.Keymap
             edit = '<Return>',
+            -- Keymap to open the file or directory under the cursor in a new tab.
+            -- @type distant.plugin.settings.Keymap
+            tabedit = '<C-t>',
             --- Keymap to display metadata for the file or directory under the cursor.
             --- @type distant.plugin.settings.Keymap
             metadata = 'M',

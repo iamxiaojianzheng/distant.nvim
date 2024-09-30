@@ -82,6 +82,7 @@ function M.configure(opts)
             mapper.apply_mappings(bufnr, {
                 [keymap.copy]     = nav.actions.copy,
                 [keymap.edit]     = nav.actions.edit,
+                [keymap.tabedit]  = nav.actions.tabedit,
                 [keymap.metadata] = nav.actions.metadata,
                 [keymap.newdir]   = nav.actions.mkdir,
                 [keymap.newfile]  = nav.actions.newfile,
@@ -154,6 +155,11 @@ function M.configure(opts)
 
     -- Display the buffer in the specified window, defaulting to current
     if not opts.no_focus then
+        if winnr == -1 then
+            -- TODO: At time of implementation there does not seem to be a lua API to create a new tabpage
+            vim.api.nvim_command('tabedit')
+            winnr = 0
+        end
         vim.api.nvim_win_set_buf(winnr, bufnr)
     end
 

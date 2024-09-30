@@ -58,6 +58,14 @@ M.edit = function(opts)
     end
 end
 
+M.tabedit = function(opts)
+    opts = opts or {}
+    opts.bufnr = nil
+    opts.winnr = -1
+
+    M.edit(opts)
+end
+
 --- Displays metadata for the path under the cursor.
 M.metadata = function()
     local client_id = plugin.buf.client_id()
