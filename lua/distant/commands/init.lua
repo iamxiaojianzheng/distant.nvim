@@ -19,6 +19,7 @@
 --- @field bang? boolean
 --- @field force? boolean
 --- @field nargs? integer|'*'
+--- @field complete? fun(string,string,_):string[]
 
 local log      = require('distant-core').log
 
@@ -58,11 +59,24 @@ local function _initialize()
             table.insert(names, name)
         end
 
+        local complete
+        if cmd.complete then
+            -- Register a global function 
+            local func_name = "DistantCommandComplete_" .. cmd.name
+
+            _G[func_name] = function(ArgLead, CmdLine, CursorPos)
+                return table.concat(cmd.complete(ArgLead, CmdLine, CursorPos), "\n")
+            end
+            -- completion config is a string with name of the global function
+            complete = "custom,v:lua." .. func_name
+        end
+
         for _, name in ipairs(names) do
             vim.api.nvim_create_user_command(name, cmd.command, {
                 desc = cmd.description,
                 bang = cmd.bang,
                 nargs = cmd.nargs,
+                complete = complete,
             })
         end
     end

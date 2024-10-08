@@ -1,6 +1,8 @@
 local plugin = require('distant')
 local utils = require('distant.commands.utils')
 
+local parent_path = require('distant-core.utils').parent_path
+
 --- DistantOpen path [opt1=... opt2=...]
 --- @param cmd NvimCommand
 local function command(cmd)
@@ -38,6 +40,51 @@ local function command(cmd)
     plugin.editor.open(opts)
 end
 
+local function completion(ArgLead,_,_)
+    local seperator = require('distant-core.utils').seperator()
+
+    -- Helper: Get the last component of a path
+    local function last_component(path)
+        local parts = vim.split(path, seperator)
+        return parts[#parts]
+    end
+
+    local path = ArgLead
+    if path == nil or path == '' then
+        path = "."
+    end
+
+    local component
+    if not vim.endswith(path, seperator) and path ~= "." then
+        component = last_component(path)
+        path = parent_path(path)
+    end
+
+    local err, payload = plugin.api().read_dir({
+        path = path,
+        depth = 1,
+        absolute = true,
+        canonicalize = true,
+    })
+
+    assert(not err, err)
+    assert(payload)
+
+    local results = {}
+
+    for _, entry in ipairs(payload.entries) do
+        if component == nil or string.match(entry.path, component) then
+            local ending_sep = ""
+            if entry.file_type == 'dir' then
+                ending_sep = seperator
+            end
+            table.insert(results, entry.path .. ending_sep)
+        end
+    end
+
+    return results
+end
+
 --- @type DistantCommand
 local COMMAND = {
     name        = 'DistantOpen',
@@ -45,5 +92,6 @@ local COMMAND = {
     command     = command,
     bang        = true,
     nargs       = '*',
+    complete    = completion,
 }
 return COMMAND
